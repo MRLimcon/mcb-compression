@@ -27,15 +27,15 @@
 
     Para comprimir uma imagem, execute o script a partir da linha de comando com o seguinte comando:
 
-        ```bash
-        python compression.py <caminho_da_imagem>
-        ```
+    ```
+    python compression.py <caminho_da_imagem>
+    ```
 
     Substitua `<caminho_da_imagem>` pelo caminho da imagem que você deseja comprimir. Por exemplo:
 
-        ```bash
-        python compression.py ./teste.jpg
-        ```
+    ```
+    python compression.py ./teste.jpg
+    ```
 
     O script executará a compressão e exibirá a imagem comprimida.
 
