@@ -3,7 +3,7 @@ import utils
 import zstandard as zstd
 
 
-def principal(caminho_da_imagem):
+def principal(caminho_da_imagem, caminho_final, percentil=90):
     # Carregar uma imagem
     img = utils.carregar_imagem(caminho_da_imagem)
 
@@ -14,14 +14,16 @@ def principal(caminho_da_imagem):
     sub_amostrada = utils.subamostragem_croma(img2)
 
     # Aplicar DCT à imagem subamostrada
-    amostrada = utils.dct_img(sub_amostrada, percentil=92)
+    amostrada = utils.dct_img(sub_amostrada, percentil=percentil)
 
     # Calcular os bytes usados pelas imagens DCT e subamostrada
     bytes_utilizados = (
         amostrada[0].tobytes() + amostrada[1].tobytes() + amostrada[2].tobytes()
     )
     bytes_subamostrados = (
-        sub_amostrada[0].tobytes() + sub_amostrada[1].tobytes() + sub_amostrada[2].tobytes()
+        sub_amostrada[0].tobytes()
+        + sub_amostrada[1].tobytes()
+        + sub_amostrada[2].tobytes()
     )
 
     # Imprimir os tamanhos das imagens comprimidas e originais
@@ -40,10 +42,17 @@ def principal(caminho_da_imagem):
     imagem_retornada = utils.idct_img(amostrada)
     utils.mostrar_img(imagem_retornada)
 
+    # Salvar a imagem comprimida
+    utils.salvar_imagem(caminho_final, imagem_retornada)
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Uso: python compression.py <caminho_da_imagem>")
+    if len(sys.argv) < 4:
+        print(
+            "Uso: python compression.py <caminho_da_imagem> <caminho_final> <percentil>"
+        )
     else:
         caminho_da_imagem = sys.argv[1]
-        principal(caminho_da_imagem)
+        caminho_final = sys.argv[2]
+        percentil = float(sys.argv[3])
+        principal(caminho_da_imagem, caminho_final, percentil)

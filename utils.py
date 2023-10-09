@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
 import cv2
 from scipy.fftpack import dctn, idctn
 
@@ -33,20 +32,20 @@ def block_dct(im: np.ndarray[np.int8], percentil):
 
 # Definir uma função para a Transformada Cosseno Inversa Discreta 2D (IDCT)
 def idct2(a):
-    return np.array(idctn(a, norm="ortho") + 128, dtype=np.uint8)
+    return np.clip(np.round(idctn(a, norm="ortho") + 128), 0, 255).astype(np.uint8)
 
 
 # Definir uma função para realizar IDCT em blocos em uma imagem
-def block_idct(im: np.ndarray[np.int8]):
+def block_idct(im: np.ndarray[np.int16]):
     imsize = im.shape
-    im_dct = np.zeros(imsize, dtype=np.int8)
+    im_dct = np.zeros(imsize, dtype=np.uint8)
 
     # Dividir a imagem em blocos de 16x16 e aplicar IDCT em cada bloco
     for i in np.arange(0, imsize[0], 16):
         for j in np.arange(0, imsize[1], 16):
             im_dct[i : (i + 16), j : (j + 16)] = idct2(im[i : (i + 16), j : (j + 16)])
 
-    return im_dct
+    return im_dct.astype(np.uint8)
 
 
 # Definir uma função para aplicar DCT em uma imagem
@@ -83,25 +82,13 @@ def idct_img(imagem_amostrada: dict[np.ndarray], em_blocos: bool = True):
     if em_blocos:
         # Aplicar IDCT em blocos e redimensionar os canais de croma
         img[:, :, 0] = block_idct(imagem_amostrada[0])
-        img[:, :, 1] = np.array(
-            Image.fromarray(block_idct(imagem_amostrada[1])).resize(res, Image.LANCZOS),
-            dtype=np.uint8,
-        )
-        img[:, :, 2] = np.array(
-            Image.fromarray(block_idct(imagem_amostrada[2])).resize(res, Image.LANCZOS),
-            dtype=np.uint8,
-        )
+        img[:, :, 1] = cv2.resize(block_idct(imagem_amostrada[1]), res)
+        img[:, :, 2] = cv2.resize(block_idct(imagem_amostrada[2]), res)
     else:
         # Aplicar IDCT a cada canal de cor e redimensionar os canais de croma
         img[:, :, 0] = idct2(imagem_amostrada[0])
-        img[:, :, 1] = np.array(
-            Image.fromarray(idct2(imagem_amostrada[1])).resize(res, Image.LANCZOS),
-            dtype=np.uint8,
-        )
-        img[:, :, 2] = np.array(
-            Image.fromarray(idct2(imagem_amostrada[2])).resize(res, Image.LANCZOS),
-            dtype=np.uint8,
-        )
+        img[:, :, 1] = cv2.resize(idct2(imagem_amostrada[1]), res)
+        img[:, :, 2] = cv2.resize(idct2(imagem_amostrada[2]), res)
 
     return converter_rgb(img)
 
@@ -120,12 +107,10 @@ def converter_rgb(img: np.ndarray):
 def subamostragem_croma(img: np.ndarray):
     nova_img = {0: img[:, :, 0]}
 
-    chroma_1 = Image.fromarray(img[:, :, 1])
-    chroma_2 = Image.fromarray(img[:, :, 2])
-    resolucao = chroma_1.size
+    resolucao = img[:, :, 0].shape
     nova_res = [int(res * 0.5) for res in resolucao]
-    nova_img[1] = np.array(chroma_1.resize(nova_res, Image.LANCZOS))
-    nova_img[2] = np.array(chroma_2.resize(nova_res, Image.LANCZOS))
+    nova_img[1] = cv2.resize(img[:, :, 1], nova_res)
+    nova_img[2] = cv2.resize(img[:, :, 2], nova_res)
     return nova_img
 
 
@@ -145,6 +130,6 @@ def mostrar_img(img):
 
 
 # Definir uma função para salvar uma imagem
-def salvar_imagem(caminho: str, matriz_imagem, aprimorar=True):
-    imagem = Image.fromarray(matriz_imagem)
-    imagem.save(caminho)
+def salvar_imagem(caminho: str, matriz_imagem):
+    img = cv2.cvtColor(matriz_imagem, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(caminho, img)

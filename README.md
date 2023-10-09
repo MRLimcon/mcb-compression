@@ -25,11 +25,11 @@ Você pode instalar essas dependências usando o `pip`:
 
 Para comprimir uma imagem, execute o script a partir da linha de comando com o seguinte comando:
 
-    python compression.py <caminho_da_imagem>
+    python compression.py <caminho_da_imagem> <caminho_final> <percentil>
 
-Substitua `<caminho_da_imagem>` pelo caminho da imagem que você deseja comprimir. Por exemplo:
+Substitua `<caminho_da_imagem>` pelo caminho da imagem que você deseja comprimir, `<caminho_final>` pelo caminho para salvar a imagem e `<percentil>` pelo percentil de quantização da imagem. Por exemplo:
 
-    python compression.py ./teste.jpg
+    python compression.py ./teste.jpg ./teste_final.jpg 90
 
 O script executará a compressão e exibirá a imagem comprimida.
 
