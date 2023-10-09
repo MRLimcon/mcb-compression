@@ -11,14 +11,13 @@ Antes de executar o script, certifique-se de ter as seguintes dependências inst
 - Python 3
 - NumPy
 - Matplotlib
-- Pillow (PIL)
 - OpenCV (cv2)
 - SciPy
 - Zstandard (zstd)
 
 Você pode instalar essas dependências usando o `pip`:
 
-    pip install numpy matplotlib pillow opencv-python-headless scipy zstandard
+    pip install numpy matplotlib opencv-python-headless scipy zstandard
 
 
 2. **Executando o Script**
