@@ -4,6 +4,95 @@ import cv2
 from scipy.fftpack import dctn, idctn
 
 
+def aplicar_fft(img):
+    # Criar o array de fft
+    fft = np.zeros_like(img).astype(np.complex128)
+
+    # Realize a FFT (Transformada Rápida de Fourier) em cada canal de cor da imagem de entrada
+    fft[:, :, 0] = np.fft.fft2(img[:, :, 0], norm="ortho")
+    fft[:, :, 1] = np.fft.fft2(img[:, :, 1], norm="ortho")
+    fft[:, :, 2] = np.fft.fft2(img[:, :, 2], norm="ortho")
+    return fft
+
+
+def aplicar_ifft(fft):
+    # Inicialize uma matriz para armazenar a nova imagem após a inversa da FFT
+    new_img = np.zeros(fft.shape).astype(np.complex128)
+
+    # Realize a inversa da FFT em cada canal de cor para reconstruir a imagem
+    new_img[:, :, 0] = np.fft.ifft2(fft[:, :, 0], norm="ortho")
+    new_img[:, :, 1] = np.fft.ifft2(fft[:, :, 1], norm="ortho")
+    new_img[:, :, 2] = np.fft.ifft2(fft[:, :, 2], norm="ortho")
+
+    return new_img
+
+
+def superdimensionar_fft(fft_low_res, low_res, high_res, low_bound):
+    # Calcule a metade da resolução para a imagem de baixa resolução
+    half_res = [int(val / 2) for val in low_res]
+
+    # Inicialize uma matriz para armazenar a FFT reconstruída para a imagem de baixa resolução
+    # (Upscaling pela interpolação de Fourier)
+    reconstructed_fft = np.zeros(list(high_res) + [3]).astype(np.complex128)
+
+    # Itere sobre os canais de cor (R, G, B)
+    for i in range(3):
+        # Copie os valores da FFT do canto superior esquerdo até o limite de baixa resolução
+        reconstructed_fft[: low_bound[0], : low_bound[1], i] = fft_low_res[
+            : half_res[0], : half_res[1], i
+        ]
+        # Copie os valores da FFT do canto superior esquerdo até o canto inferior direito
+        # na região de baixa resolução
+        reconstructed_fft[
+            : low_bound[0], low_bound[1] + low_res[1] - 1 :, i
+        ] = fft_low_res[: half_res[0], half_res[1] - 1 :, i]
+        # Copie os valores da FFT do canto inferior esquerdo até o canto superior direito
+        # na região de baixa resolução
+        reconstructed_fft[
+            low_bound[0] + low_res[0] - 1 :, : low_bound[1], i
+        ] = fft_low_res[half_res[0] - 1 :, : half_res[1], i]
+        # Copie os valores da FFT do canto inferior esquerdo até o canto inferior direito
+        # na região de baixa resolução
+        reconstructed_fft[
+            low_bound[0] + low_res[0] - 1 :, low_bound[1] + low_res[1] - 1 :, i
+        ] = fft_low_res[half_res[0] - 1 :, half_res[1] - 1 :, i]
+
+    return reconstructed_fft
+
+
+def subdimensionar_fft(fft_high_res, low_res, high_res, low_bound):
+    # Calcule a metade da resolução para a imagem de baixa resolução
+    half_res = [int(val / 2) for val in low_res]
+
+    # Inicialize uma matriz para armazenar a FFT reconstruída para a imagem de baixa resolução
+    # (Downscaling pela interpolação de Fourier)
+    reconstructed_fft = np.zeros(list(low_res) + [3]).astype(np.complex128)
+
+    # Itere sobre os canais de cor (R, G, B)
+    for i in range(3):
+        # Copie os valores da FFT do canto superior esquerdo até o limite de baixa resolução
+        reconstructed_fft[: half_res[0], : half_res[1], i] = fft_high_res[
+            : low_bound[0], : low_bound[1], i
+        ]
+        # Copie os valores da FFT do canto superior esquerdo até o canto inferior direito
+        # na região de baixa resolução
+        reconstructed_fft[: half_res[0], half_res[1] - 1 :, i] = fft_high_res[
+            : low_bound[0], low_bound[1] + low_res[1] - 1 :, i
+        ]
+        # Copie os valores da FFT do canto inferior esquerdo até o canto superior direito
+        # na região de baixa resolução
+        reconstructed_fft[half_res[0] - 1 :, : half_res[1], i] = fft_high_res[
+            low_bound[0] + low_res[0] - 1 :, : low_bound[1], i
+        ]
+        # Copie os valores da FFT do canto inferior esquerdo até o canto inferior direito
+        # na região de baixa resolução
+        reconstructed_fft[half_res[0] - 1 :, half_res[1] - 1 :, i] = fft_high_res[
+            low_bound[0] + low_res[0] - 1 :, low_bound[1] + low_res[1] - 1 :, i
+        ]
+
+    return reconstructed_fft
+
+
 # Definir uma função para a Transformada Cosseno Discreta 2D (DCT)
 def dct2(a):
     # Deslocar os dados de entrada para ter média zero
