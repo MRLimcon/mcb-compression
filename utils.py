@@ -9,9 +9,15 @@ def aplicar_fft(img):
     fft = np.zeros_like(img).astype(np.complex128)
 
     # Realize a FFT (Transformada Rápida de Fourier) em cada canal de cor da imagem de entrada
-    fft[:, :, 0] = np.fft.fft2(img[:, :, 0], norm="ortho")
-    fft[:, :, 1] = np.fft.fft2(img[:, :, 1], norm="ortho")
-    fft[:, :, 2] = np.fft.fft2(img[:, :, 2], norm="ortho")
+    fft[:, :, 0] = np.fft.fft2(
+        img[:, :, 0].copy().astype(np.float64) - 128, norm="ortho"
+    )
+    fft[:, :, 1] = np.fft.fft2(
+        img[:, :, 1].copy().astype(np.float64) - 128, norm="ortho"
+    )
+    fft[:, :, 2] = np.fft.fft2(
+        img[:, :, 2].copy().astype(np.float64) - 128, norm="ortho"
+    )
     return fft
 
 
@@ -20,9 +26,9 @@ def aplicar_ifft(fft):
     new_img = np.zeros(fft.shape).astype(np.complex128)
 
     # Realize a inversa da FFT em cada canal de cor para reconstruir a imagem
-    new_img[:, :, 0] = np.fft.ifft2(fft[:, :, 0], norm="ortho")
-    new_img[:, :, 1] = np.fft.ifft2(fft[:, :, 1], norm="ortho")
-    new_img[:, :, 2] = np.fft.ifft2(fft[:, :, 2], norm="ortho")
+    new_img[:, :, 0] = np.fft.ifft2(fft[:, :, 0], norm="ortho") + 128
+    new_img[:, :, 1] = np.fft.ifft2(fft[:, :, 1], norm="ortho") + 128
+    new_img[:, :, 2] = np.fft.ifft2(fft[:, :, 2], norm="ortho") + 128
 
     return new_img
 
@@ -45,18 +51,18 @@ def superdimensionar_fft(fft_low_res, high_res):
         ]
         # Copie os valores da FFT do canto superior esquerdo até o canto inferior direito
         # na região de baixa resolução
-        reconstructed_fft[: half_res[0], top_res[1] - 1 :, i] = fft_low_res[
-            : half_res[0], half_res[1] - 1 :, i
+        reconstructed_fft[: half_res[0], top_res[1] :, i] = fft_low_res[
+            : half_res[0], half_res[1] :, i
         ]
         # Copie os valores da FFT do canto inferior esquerdo até o canto superior direito
         # na região de baixa resolução
-        reconstructed_fft[top_res[0] - 1 :, : half_res[1], i] = fft_low_res[
-            half_res[0] - 1 :, : half_res[1], i
+        reconstructed_fft[top_res[0] :, : half_res[1], i] = fft_low_res[
+            half_res[0] :, : half_res[1], i
         ]
         # Copie os valores da FFT do canto inferior esquerdo até o canto inferior direito
         # na região de baixa resolução
-        reconstructed_fft[top_res[0] - 1 :, top_res[1] - 1 :, i] = fft_low_res[
-            half_res[0] - 1 :, half_res[1] - 1 :, i
+        reconstructed_fft[top_res[0] :, top_res[1] :, i] = fft_low_res[
+            half_res[0] :, half_res[1] :, i
         ]
 
     return reconstructed_fft
@@ -80,18 +86,18 @@ def subdimensionar_fft(fft_high_res, low_res):
         ]
         # Copie os valores da FFT do canto superior esquerdo até o canto inferior direito
         # na região de baixa resolução
-        reconstructed_fft[: half_res[0], half_res[1] - 1 :, i] = fft_high_res[
-            : half_res[0], top_res[1] - 1 :, i
+        reconstructed_fft[: half_res[0], half_res[1] :, i] = fft_high_res[
+            : half_res[0], top_res[1] :, i
         ]
         # Copie os valores da FFT do canto inferior esquerdo até o canto superior direito
         # na região de baixa resolução
-        reconstructed_fft[half_res[0] - 1 :, : half_res[1], i] = fft_high_res[
-            top_res[0] - 1 :, : half_res[1], i
+        reconstructed_fft[half_res[0] :, : half_res[1], i] = fft_high_res[
+            top_res[0] :, : half_res[1], i
         ]
         # Copie os valores da FFT do canto inferior esquerdo até o canto inferior direito
         # na região de baixa resolução
-        reconstructed_fft[half_res[0] - 1 :, half_res[1] - 1 :, i] = fft_high_res[
-            top_res[0] - 1 :, top_res[1] - 1 :, i
+        reconstructed_fft[half_res[0] :, half_res[1] :, i] = fft_high_res[
+            top_res[0] :, top_res[1] :, i
         ]
 
     return reconstructed_fft

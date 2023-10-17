@@ -9,7 +9,7 @@ img = utils.carregar_imagem("./teste.jpg")
 # Obtenha a resolução (forma) da imagem de entrada
 res = img.shape[:-1]
 
-scaling = 2
+scaling = 8
 
 # Calcule a resolução para a imagem de baixa resolução (a metade da resolução original)
 low_res = [int(val / scaling) for val in res]
@@ -24,12 +24,10 @@ utils.mostrar_img(np.log(np.abs(fft_high_res[:, :, 0]) + 1))
 reconstructed_fft = utils.subdimensionar_fft(fft_high_res, low_res)
 
 # Aplicar a inversa da FFT na FFT subdimensionada
-new_low_res_img = utils.aplicar_ifft(reconstructed_fft)
+new_low_res_img = utils.aplicar_ifft(reconstructed_fft / scaling)
 
 # Arredonde a parte real da imagem de baixa resolução, divida por "scaling" (diminuiu o tamanho da imagem em "scaling" em cada eixo), limite os valores a [0, 255] e converta para inteiros sem sinal de 8 bits
-new_low_res_img = np.round(np.clip(np.real(new_low_res_img) / scaling, 0, 255)).astype(
-    np.uint8
-)
+new_low_res_img = np.round(np.clip(np.real(new_low_res_img), 0, 255)).astype(np.uint8)
 
 # Salve a imagem de baixa resolução reconstruída
 utils.salvar_imagem("imagem_fft_subamostrada.jpg", new_low_res_img)
@@ -62,12 +60,10 @@ reconstructed_fft2 = utils.superdimensionar_fft(fft_low_res, res)
 utils.mostrar_img(np.log(np.abs(reconstructed_fft2[:, :, 0]) + 1))
 
 # Aplicar a inversa da FFT
-new_low_res_img = utils.aplicar_ifft(reconstructed_fft2)
+new_low_res_img = utils.aplicar_ifft(reconstructed_fft2 * scaling)
 
 # Arredonde a parte real da imagem de baixa resolução, multiplique por 2 (aumentou o tamanho da imagem em 2 em cada eixo), limite os valores a [0, 255] e converta para inteiros sem sinal de 8 bits
-new_low_res_img = np.round(np.clip(np.real(new_low_res_img) * scaling, 0, 255)).astype(
-    np.uint8
-)
+new_low_res_img = np.round(np.clip(np.real(new_low_res_img), 0, 255)).astype(np.uint8)
 
 # Salve a imagem de baixa resolução reconstruída
 utils.salvar_imagem("imagem_fft_amostrada.jpg", new_low_res_img)
