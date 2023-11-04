@@ -165,7 +165,7 @@ def dct_img(
         img[0] = img[0] * (valores_absolutos > np.percentile(img[0], percentil))
         img[1] = dct2(imagem_amostrada[1])
         valores_absolutos = np.abs(img[1])
-        img[1] = img[1] * (valores_absolutos > np.percentil(img[1], percentil))
+        img[1] = img[1] * (valores_absolutos > np.percentile(img[1], percentil))
         img[2] = dct2(imagem_amostrada[2])
         valores_absolutos = np.abs(img[2])
         img[2] = img[2] * (valores_absolutos > np.percentile(img[2], percentil))
